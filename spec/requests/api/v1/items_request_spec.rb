@@ -76,4 +76,28 @@ describe "Items API" do
     expect(item_data[:data][:attributes][:name]).to_not eq(previous_name)
     expect(item_data[:data][:attributes][:name]).to eq "New Item Name"
   end
+
+  it 'can delete an item' do
+    merchant = create(:merchant)
+    item = create(:item, merchant_id: merchant.id)
+
+    expect(Item.count).to eq(1)
+
+    delete "/api/v1/items/#{item.id}"
+
+    expect(response.status).to eq(200)
+    expect(Item.count).to eq(0)
+    expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
+  end
+
+  it 'can return the merchant associated with an item' do
+    merchant = create(:merchant)
+    item = create(:item, merchant_id: merchant.id)
+
+    get "/api/v1/items/#{item.id}/merchant"
+    merchant_data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(200)
+    expect(merchant_data[:data][:attributes][:name]).to eq(merchant.name)
+  end
 end
