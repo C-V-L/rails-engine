@@ -8,7 +8,12 @@ class Api::V1::ItemsController < ApplicationController
   end
 
   def create
-    render json: ItemSerializer.new(Item.create(item_params))
+    item = Item.new(item_params)
+    if item.save 
+      render json: ItemSerializer.new(Item.create!(item_params)), status: 201
+    else
+      render json: {error: "Item not created"}, status: 400
+    end
   end
 
   def update
@@ -18,7 +23,7 @@ class Api::V1::ItemsController < ApplicationController
   def destroy
     item = Item.find(params[:id])
     item.destroy
-    render json: ItemSerializer.new(item).serializable_hash
+    render json: ItemSerializer.new(item).serializable_hash.to_json
   end
 
   private
