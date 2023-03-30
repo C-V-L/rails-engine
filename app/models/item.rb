@@ -5,4 +5,6 @@ class Item < ApplicationRecord
   has_many :customers, through: :invoices, dependent: :destroy
   has_many :transactions, through: :invoices, dependent: :destroy
   
+  validates_presence_of :name, :description, :unit_price, :merchant_id
+  validates_numericality_of :unit_price, greater_than: 0, only_float: true
 end

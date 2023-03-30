@@ -51,14 +51,48 @@ describe "Items API" do
     expect(item_data[:data][:attributes][:merchant_id]).to eq item.merchant_id
   end
 
-  it 'can create a new item' do
-    merchant = create(:merchant)
-    post "/api/v1/items" , params: { name: "New Item", description: "New Description", unit_price: 100.0, merchant_id: merchant.id }
-    item_data = JSON.parse(response.body, symbolize_names: true)
+  it 'returns an error if the item does not exist' do
+    get "/api/v1/items/1"
 
-    expect(response.status).to eq(201)
-    expect(item_data[:data][:attributes].keys).to eq [:name, :description, :unit_price, :merchant_id]
-    expect(item_data[:data][:attributes][:name]).to eq("New Item")
+    no_item = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(404)
+    expect(no_item[:errors].first[:title]).to eq("Couldn't find Item with 'id'=1")
+    expect(no_item[:errors].first[:status]).to eq("404")
+  end
+
+  describe '#create' do 
+    it 'can create a new item' do
+      merchant = create(:merchant)
+      post "/api/v1/items" , params: { name: "New Item", description: "New Description", unit_price: 100.0, merchant_id: merchant.id }
+      item_data = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response.status).to eq(201)
+      expect(item_data[:data][:attributes].keys).to eq [:name, :description, :unit_price, :merchant_id]
+      expect(item_data[:data][:attributes][:name]).to eq("New Item")
+    end
+
+    it 'returns an error if the item is not created' do
+      merchant = create(:merchant)
+      post "/api/v1/items" , params: { name: "New Item", description: "New Description", merchant_id: merchant.id }
+      item_data = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response.status).to eq(422)
+      expect(item_data[:errors].first[:title]).to eq("Validation failed: Unit price can't be blank, Unit price is not a number")
+    end
+
+    it "can ignore attributes that are not relavant to item" do
+      merchant = create(:merchant)
+      item_atts = { name: "New Item", description: "New Description", unit_price: 100.0, merchant_id: merchant.id, other_param: "test" }
+      post "/api/v1/items", params: item_atts
+
+      item_data = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response.status).to eq(201)
+      expect(item_data[:data][:attributes].keys).to eq([:name, :description, :unit_price, :merchant_id])
+      expect(item_data[:data][:attributes].keys).not_to include(:other_param)
+      expect(item_data[:data][:attributes][:name]).to eq(item_atts[:name])
+    end
   end
 
   it 'can update an existing item' do
