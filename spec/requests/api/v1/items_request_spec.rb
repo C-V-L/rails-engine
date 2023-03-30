@@ -95,19 +95,32 @@ describe "Items API" do
     end
   end
 
-  it 'can update an existing item' do
-    merchant = create(:merchant)
-    item = create(:item, merchant_id: merchant.id)
-    previous_name = item.name
-    item_params = { name: "New Item Name" }
+  describe '#update' do
+    it 'can update an existing item' do
+      merchant = create(:merchant)
+      item = create(:item, merchant_id: merchant.id)
+      previous_name = item.name
+      item_params = { name: "New Item Name" }
 
-    patch "/api/v1/items/#{item.id}", params: item_params
+      patch "/api/v1/items/#{item.id}", params: item_params
 
-    item_data = JSON.parse(response.body, symbolize_names: true)
+      item_data = JSON.parse(response.body, symbolize_names: true)
 
-    expect(response.status).to eq(200)
-    expect(item_data[:data][:attributes][:name]).to_not eq(previous_name)
-    expect(item_data[:data][:attributes][:name]).to eq "New Item Name"
+      expect(response.status).to eq(200)
+      expect(item_data[:data][:attributes][:name]).to_not eq(previous_name)
+      expect(item_data[:data][:attributes][:name]).to eq "New Item Name"
+    end
+
+    it 'returns an error if the item is not updated' do
+      merchant = create(:merchant)
+      item = create(:item, merchant_id: merchant.id)
+      item_params = { unit_price: "not a number" }
+      patch "/api/v1/items/#{item.id}", params: item_params
+
+      item_data = JSON.parse(response.body, symbolize_names: true)
+      expect(response.status).to eq(422)
+      expect(item_data[:errors].first[:title]).to eq("Validation failed: Unit price is not a number")
+    end
   end
 
   it 'can delete an item' do
