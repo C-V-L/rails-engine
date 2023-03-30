@@ -44,6 +44,15 @@ describe "Merchants API" do
     expect(merchant[:data][:attributes][:name]).to be_a(String)
   end
 
+  it 'will return an error if the merchant does not exist' do
+    get "/api/v1/merchants/1"
+
+    no_merch = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(404)
+    expect(no_merch[:errors].first[:title]).to eq("Couldn't find Merchant with 'id'=1")
+  end
+
   it 'can return a collection of items associated with that merchant' do
     id = create(:merchant).id
     items = create_list(:item, 3, merchant_id: id)
