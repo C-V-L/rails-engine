@@ -1,10 +1,10 @@
-class Api::V1::MerchantFindController < ApplicationController
+class Api::V1::MerchantsFindController < ApplicationController
   def show
     merchant = Merchant.search_by_name(params[:name])
     if !merchant.nil?
       render json: MerchantSerializer.new(Merchant.search_by_name(params[:name]))
-    else ActiveRecord::RecordNotFound
-      render json: {errors: [{status: "404", title: "No Record Found"}]}, status: 404
+    else
+      render json: { "data": {} }
     end
   end
 end

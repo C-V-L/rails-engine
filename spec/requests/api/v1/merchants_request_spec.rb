@@ -76,7 +76,7 @@ describe "Merchants API" do
     merchant = create(:merchant, name: 'merchant')
     merchant2 = create(:merchant, name: 'merchant2')
     merchant3 = create(:merchant, name: 'merchant3')
-    get '/api/v1/merchant/find?name=merchant'
+    get '/api/v1/merchants/find?name=merchant'
 
     merchant_search = JSON.parse(response.body, symbolize_names: true)
 
@@ -86,11 +86,11 @@ describe "Merchants API" do
   end
 
   it 'raises an error if no merchant is found' do
-    get '/api/v1/merchant/find?name=harry'
+    get '/api/v1/merchants/find?name=harry'
 
     merchant_search = JSON.parse(response.body, symbolize_names: true)
 
-    expect(response.status).to eq 404
-    expect(merchant_search[:errors].first[:title]).to eq("No Record Found")
+    expect(response.status).to eq 200
+    expect(merchant_search[:data]).to eq({})
   end
 end

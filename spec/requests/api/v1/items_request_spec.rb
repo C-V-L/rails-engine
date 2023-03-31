@@ -146,4 +146,27 @@ describe "Items API" do
     expect(response.status).to eq(200)
     expect(merchant_data[:data][:attributes][:name]).to eq(merchant.name)
   end
+
+  describe 'Find Endpoints' do
+    describe 'Find by price range' do
+      it 'can find all items within a price range' do
+        merchant = create(:merchant)
+        item_1 = create(:item, merchant: merchant, unit_price: 1.00)
+        item_2 = create(:item, merchant: merchant, unit_price: 2.00)
+        item_3 = create(:item, merchant: merchant, unit_price: 3.00)
+        item_4 = create(:item, merchant: merchant, unit_price: 4.00)
+        item_5 = create(:item, merchant: merchant, unit_price: 5.00)
+
+        get "/api/v1/items/find_all?min_price=2.00&max_price=4.00"
+
+        item_search = JSON.parse(response.body, symbolize_names: true)
+
+        expect(response.status).to eq(200)
+        expect(item_search[:data].count).to eq(3)
+        expect(item_search[:data].first[:attributes][:name]).to eq(item_2.name)
+        expect(item_search[:data].second[:attributes][:name]).to eq(item_3.name)
+        expect(item_search[:data].third[:attributes][:name]).to eq(item_4.name)
+      end
+    end
+  end
 end
