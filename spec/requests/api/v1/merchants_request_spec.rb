@@ -71,4 +71,17 @@ describe "Merchants API" do
     expect(items_data[:data].first[:attributes][:unit_price]).to eq(items.first.unit_price)
     expect(items_data[:data].first[:attributes][:merchant_id]).to eq(items.first.merchant_id)
   end
+
+  it 'can return a merchant based on search criteria' do
+    merchant = create(:merchant, name: 'merchant')
+    merchant2 = create(:merchant, name: 'merchant2')
+    merchant3 = create(:merchant, name: 'merchant3')
+    get '/api/v1/merchant/search?name=merchant'
+
+    merchant_search = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq 200
+    expect(merchant_search[:data][:id]).to eq(merchant.id.to_s)
+    expect(merchant_search[:data][:attributes][:name]).to eq('merchant')
+  end
 end
