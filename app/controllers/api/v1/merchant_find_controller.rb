@@ -1,4 +1,4 @@
-class Api::V1::MerchantSearchController < ApplicationController
+class Api::V1::MerchantFindController < ApplicationController
   def show
     merchant = Merchant.search_by_name(params[:name])
     if !merchant.nil?
