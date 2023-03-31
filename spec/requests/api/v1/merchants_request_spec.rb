@@ -84,4 +84,13 @@ describe "Merchants API" do
     expect(merchant_search[:data][:id]).to eq(merchant.id.to_s)
     expect(merchant_search[:data][:attributes][:name]).to eq('merchant')
   end
+
+  it 'raises an error if no merchant is found' do
+    get '/api/v1/merchant/search?name=harry'
+
+    merchant_search = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq 404
+    expect(merchant_search[:errors].first[:title]).to eq("No Record Found")
+  end
 end
