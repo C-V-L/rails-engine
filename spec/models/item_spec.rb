@@ -16,8 +16,45 @@ RSpec.describe Item, type: :model do
         item_3 = create(:item, merchant: merchant, unit_price: 3.00)
         item_4 = create(:item, merchant: merchant, unit_price: 4.00)
         item_5 = create(:item, merchant: merchant, unit_price: 5.00)
+        params = { min_price: 2.00, max_price: 4.00 }
 
-        expect(Item.find_by_price_range(2.00, 4.00)).to eq([item_2, item_3, item_4])
+        expect(Item.find_by_price_range(params)).to eq([item_2, item_3, item_4])
+      end
+
+      it 'can return all items above a minimum price' do
+        merchant = create(:merchant)
+        item_1 = create(:item, merchant: merchant, unit_price: 1.00)
+        item_2 = create(:item, merchant: merchant, unit_price: 2.00)
+        item_3 = create(:item, merchant: merchant, unit_price: 3.00)
+        item_4 = create(:item, merchant: merchant, unit_price: 4.00)
+        item_5 = create(:item, merchant: merchant, unit_price: 5.00)
+        params = { min_price: 2.00 }
+
+        expect(Item.find_by_price_range(params)).to eq([item_2, item_3, item_4, item_5])
+      end
+
+      it 'can return all items below a maximum price' do
+        merchant = create(:merchant)
+        item_1 = create(:item, merchant: merchant, unit_price: 1.00)
+        item_2 = create(:item, merchant: merchant, unit_price: 2.00)
+        item_3 = create(:item, merchant: merchant, unit_price: 3.00)
+        item_4 = create(:item, merchant: merchant, unit_price: 4.00)
+        item_5 = create(:item, merchant: merchant, unit_price: 5.00)
+        params = { max_price: 4.00 }
+
+        expect(Item.find_by_price_range(params)).to eq([item_1, item_2, item_3, item_4])
+      end
+
+      it 'can return empty data if min price too high' do
+        merchant = create(:merchant)
+        item_1 = create(:item, merchant: merchant, unit_price: 1.00)
+        item_2 = create(:item, merchant: merchant, unit_price: 2.00)
+        item_3 = create(:item, merchant: merchant, unit_price: 3.00)
+        item_4 = create(:item, merchant: merchant, unit_price: 4.00)
+        item_5 = create(:item, merchant: merchant, unit_price: 5.00)
+        params = { min_price: 6.00 }
+
+        expect(Item.find_by_price_range(params)).to eq([])
       end
     end
   end

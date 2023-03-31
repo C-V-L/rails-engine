@@ -8,8 +8,16 @@ class Item < ApplicationRecord
   validates_presence_of :name, :description, :unit_price, :merchant_id
   validates_numericality_of :unit_price, greater_than: 0, only_float: true
 
-  def self.find_by_price_range(min, max)
-    where("unit_price >= ? AND unit_price <= ?", min, max)
+  def self.find_by_price_range(params)
+    if params[:min_price] && params[:max_price]
+      where("unit_price >= ? AND unit_price <= ?", params[:min_price], params[:max_price])
+    elsif params[:min_price]
+      where("unit_price >= ?", params[:min_price])
+    elsif params[:max_price]
+      where("unit_price <= ?", params[:max_price])
+    else
+      all
+    end
   end
 
   def self.search_by_name(search_name)
