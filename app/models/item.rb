@@ -7,4 +7,8 @@ class Item < ApplicationRecord
   
   validates_presence_of :name, :description, :unit_price, :merchant_id
   validates_numericality_of :unit_price, greater_than: 0, only_float: true
+
+  def self.find_by_price_range(min, max)
+    Item.where("unit_price >= ? AND unit_price <= ?", min, max)
+  end
 end
