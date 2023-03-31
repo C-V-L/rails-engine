@@ -8,6 +8,29 @@ RSpec.describe Item, type: :model do
   end
 
   describe "class methods" do
+    describe '.search_by_name' do
+      it 'returns an item if the name is an exact match' do
+        merc = create(:merchant)
+        item = create(:item, name: "Pizza", merchant: merc)
+
+        expect(Item.search_by_name("Pizza")).to eq(item)
+      end
+
+      it 'returns an item if the name is a partial match' do
+        merc = create(:merchant)
+        item = create(:item, name: "Pizza", merchant: merc)
+
+        expect(Item.search_by_name("Piz")).to eq(item)
+      end
+
+      it 'returns nothing if the name does not match' do
+        merc = create(:merchant)
+        item = create(:item, name: "Pizza", merchant: merc)
+
+        expect(Item.search_by_name("Cheese")).to eq(nil)
+      end
+    end
+
     describe ".find_by_price_range" do
       it "returns items within the price range" do
         merchant = create(:merchant)
