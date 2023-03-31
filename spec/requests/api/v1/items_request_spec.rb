@@ -148,6 +148,42 @@ describe "Items API" do
   end
 
   describe 'Find Endpoints' do
+    describe 'Find by name' do
+      before :each do
+        merchant = create(:merchant)
+        @item1 = create(:item, merchant: merchant, name: "Item 1")
+        @item2 = create(:item, merchant: merchant, name: "Item 2")
+        @item3 = create(:item, merchant: merchant, name: "Item 3")
+      end
+
+      it 'can find an item by name' do
+        get "/api/v1/items/find_all?name=#{@item1.name}"
+
+        expect(response.status).to eq(200)
+        item_search = JSON.parse(response.body, symbolize_names: true)
+        expect(item_search[:data]).to be_a(Array)
+        expect(item_search[:data].first[:attributes][:name]).to eq(@item1.name)
+      end
+
+      it 'returns all paratial matches' do
+        get "/api/v1/items/find_all?name=item"
+
+        expect(response.status).to eq(200)
+        item_search = JSON.parse(response.body, symbolize_names: true)
+        expect(item_search[:data].count).to be(3)
+        expect(item_search[:data].first[:attributes][:name]).to eq(@item1.name)
+        expect(item_search[:data].last[:attributes][:name]).to eq(@item3.name)
+      end
+
+      it 'returns an empty array if no matches are found' do
+        get "/api/v1/items/find_all?name=notanitem"
+
+        expect(response.status).to eq(200)
+        item_search = JSON.parse(response.body, symbolize_names: true)
+        expect(item_search[:data]).to be_a(Array)
+        expect(item_search[:data]).to eq([])
+      end
+    end
     describe 'Find by price range' do
       it 'can find all items within a price range' do
         merchant = create(:merchant)

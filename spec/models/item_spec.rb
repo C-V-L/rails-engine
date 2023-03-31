@@ -13,7 +13,7 @@ RSpec.describe Item, type: :model do
         merc = create(:merchant)
         item = create(:item, name: "Pizza", merchant: merc)
 
-        expect(Item.search_by_name("Pizza")).to eq(item)
+        expect(Item.search_by_name("Pizza")).to eq([item])
       end
 
       it 'returns an all items if the name is a partial match' do

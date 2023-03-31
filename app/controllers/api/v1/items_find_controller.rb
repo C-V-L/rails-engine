@@ -1,4 +1,7 @@
 class Api::V1::ItemsFindController < ApplicationController
+  before_action :min_price_check, only: [:index]
+  before_action :max_price_check, only: [:index]
+
   def index
     if params[:name]
       render json: ItemSerializer.new(Item.search_by_name(params[:name]))
