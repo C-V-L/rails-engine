@@ -21,6 +21,6 @@ class Item < ApplicationRecord
   end
 
   def self.search_by_name(search_name)
-    where("lower(name) LIKE lower('%#{search_name}%')").order(:name).first
+    where("lower(name) LIKE lower('%#{search_name}%')").order(:name)
   end
 end
