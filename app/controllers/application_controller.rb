@@ -11,11 +11,6 @@ class ApplicationController < ActionController::API
     render json: ErrorSerializer.new(error).serialized_json, status: 404
   end
 
-  def no_records_found
-    error = { message: "No records found" }
-    render json: ErrorSerializer.new(error).serialized_json, status: 404
-  end
-
   def render_invaild_request(error)
     render json: ErrorSerializer.new(error).serialized_json, status: 400
   end
