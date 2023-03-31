@@ -77,7 +77,7 @@ describe "Items API" do
       post "/api/v1/items" , params: { name: "New Item", description: "New Description", merchant_id: merchant.id }
       item_data = JSON.parse(response.body, symbolize_names: true)
 
-      expect(response.status).to eq(422)
+      expect(response.status).to eq(404)
       expect(item_data[:errors].first[:title]).to eq("Validation failed: Unit price can't be blank, Unit price is not a number")
     end
 
@@ -118,8 +118,19 @@ describe "Items API" do
       patch "/api/v1/items/#{item.id}", params: item_params
 
       item_data = JSON.parse(response.body, symbolize_names: true)
-      expect(response.status).to eq(422)
+      expect(response.status).to eq(404)
       expect(item_data[:errors].first[:title]).to eq("Validation failed: Unit price is not a number")
+    end
+
+    it 'returns a 404 error if a bad merchant ID is input' do 
+      merchant = create(:merchant)
+      item = create(:item, merchant_id: merchant.id)
+      item_params = { merchant_id: 1 }
+      patch "/api/v1/items/#{item.id}", params: item_params
+
+      item_data = JSON.parse(response.body, symbolize_names: true)
+      expect(response.status).to eq(404)
+      expect(item_data[:errors].first[:title]).to eq("Validation failed: Merchant must exist")
     end
   end
 
@@ -145,5 +156,117 @@ describe "Items API" do
 
     expect(response.status).to eq(200)
     expect(merchant_data[:data][:attributes][:name]).to eq(merchant.name)
+  end
+
+  describe 'Find Endpoints' do
+    describe 'Find by name' do
+      before :each do
+        merchant = create(:merchant)
+        @item1 = create(:item, merchant: merchant, name: "Item 1")
+        @item2 = create(:item, merchant: merchant, name: "Item 2")
+        @item3 = create(:item, merchant: merchant, name: "Item 3")
+      end
+
+      it 'can find an item by name' do
+        get "/api/v1/items/find_all?name=#{@item1.name}"
+
+        expect(response.status).to eq(200)
+        item_search = JSON.parse(response.body, symbolize_names: true)
+        expect(item_search[:data]).to be_a(Array)
+        expect(item_search[:data].first[:attributes][:name]).to eq(@item1.name)
+      end
+
+      it 'returns all paratial matches' do
+        get "/api/v1/items/find_all?name=item"
+
+        expect(response.status).to eq(200)
+        item_search = JSON.parse(response.body, symbolize_names: true)
+        expect(item_search[:data].count).to be(3)
+        expect(item_search[:data].first[:attributes][:name]).to eq(@item1.name)
+        expect(item_search[:data].last[:attributes][:name]).to eq(@item3.name)
+      end
+
+      it 'returns an empty array if no matches are found' do
+        get "/api/v1/items/find_all?name=notanitem"
+
+        expect(response.status).to eq(200)
+        item_search = JSON.parse(response.body, symbolize_names: true)
+        expect(item_search[:data]).to be_a(Array)
+        expect(item_search[:data]).to eq([])
+      end
+    end
+
+    describe 'Find by price range' do
+      before :each do
+        merchant = create(:merchant)
+        @item_1 = create(:item, merchant: merchant, unit_price: 1.00)
+        @item_2 = create(:item, merchant: merchant, unit_price: 2.00)
+        @item_3 = create(:item, merchant: merchant, unit_price: 3.00)
+        @item_4 = create(:item, merchant: merchant, unit_price: 4.00)
+        @item_5 = create(:item, merchant: merchant, unit_price: 5.00)
+      end
+
+      it 'can find all items within a price range' do
+        get "/api/v1/items/find_all?min_price=2.00&max_price=4.00"
+
+        item_search = JSON.parse(response.body, symbolize_names: true)
+
+        expect(response.status).to eq(200)
+        expect(item_search[:data].count).to eq(3)
+        expect(item_search[:data].first[:attributes][:name]).to eq(@item_2.name)
+        expect(item_search[:data].second[:attributes][:name]).to eq(@item_3.name)
+        expect(item_search[:data].third[:attributes][:name]).to eq(@item_4.name)
+      end
+
+      it 'can search by just min price' do
+        get "/api/v1/items/find_all?min_price=2.00"
+        item_search = JSON.parse(response.body, symbolize_names: true)
+
+        expect(response.status).to eq(200)
+        expect(item_search[:data].count).to eq(4)
+        expect(item_search[:data].first[:attributes][:name]).to eq(@item_2.name)
+        expect(item_search[:data].second[:attributes][:name]).to eq(@item_3.name)
+        expect(item_search[:data].last[:attributes][:name]).to eq(@item_5.name)
+      end
+
+      it 'returns 400 if min price is less than zero' do
+        get "/api/v1/items/find_all?min_price=-1.00"
+
+        expect(response.status).to eq(400)
+      end
+
+      it 'returns 400 if max price is less than zero' do
+        get "/api/v1/items/find_all?max_price=-1.00"
+
+        expect(response.status).to eq(400)
+      end
+
+      it 'returns 400 if min price is greater than max price' do
+        get "/api/v1/items/find_all?min_price=5.00&max_price=1.00"
+
+        expect(response.status).to eq(400)
+      end
+
+      it 'returns 400 if name and min/max price are both used' do
+        get "/api/v1/items/find_all?name=Item&min_price=1.00&max_price=5.00"
+
+        expect(response.status).to eq(400)
+      end
+    end
+
+    it 'returns all items if no search parameters' do
+      merchant = create(:merchant)
+      @item1 = create(:item, merchant: merchant, name: "Item 1")
+      @item2 = create(:item, merchant: merchant, name: "Item 2")
+      @item3 = create(:item, merchant: merchant, name: "Item 3")
+
+      get "/api/v1/items/find_all"
+
+      expect(response.status).to eq(200)
+      item_search = JSON.parse(response.body, symbolize_names: true)
+
+      expect(item_search[:data].count).to eq(3)
+    end
+
   end
 end
