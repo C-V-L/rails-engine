@@ -7,7 +7,7 @@ class Api::V1::ItemsFindController < ApplicationController
     elsif params[:min_price] || params[:max_price]
       render json: ItemSerializer.new(Item.find_by_price_range(params))
     else
-      render json: ItemSerializer.new(Item.all)
+      render json: ItemSerializer.new(Item.find_by_price_range(params))
     end
   end
 end

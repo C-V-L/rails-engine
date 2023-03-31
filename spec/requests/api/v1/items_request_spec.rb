@@ -229,6 +229,17 @@ describe "Items API" do
         expect(item_search[:data].last[:attributes][:name]).to eq(@item_5.name)
       end
 
+      it 'can search by just max price' do
+        get "/api/v1/items/find_all?max_price=3.00"
+        item_search = JSON.parse(response.body, symbolize_names: true)
+
+        expect(response.status).to eq(200)
+        expect(item_search[:data].count).to eq(3)
+        expect(item_search[:data].first[:attributes][:name]).to eq(@item_1.name)
+        expect(item_search[:data].second[:attributes][:name]).to eq(@item_2.name)
+        expect(item_search[:data].last[:attributes][:name]).to eq(@item_3.name)
+      end
+
       it 'returns 400 if min price is less than zero' do
         get "/api/v1/items/find_all?min_price=-1.00"
 
